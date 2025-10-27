@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "162083529653",
+    "project_id": "scs-project-2025f",
+    "storage_bucket": "scs-project-2025f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:162083529653:android:d24d3aff5ba340475eeffc",
+        "android_client_info": {
+          "package_name": "com.example.scs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmCSIS50NogHLC4pQ-qtZYPVW7Ym0iOks"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

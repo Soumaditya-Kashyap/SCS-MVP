@@ -328,46 +328,40 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  TextField(
+                  TextFormField(
+                    initialValue: classData.subject,
                     decoration: const InputDecoration(
                       labelText: 'Subject',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.book),
                     ),
                     onChanged: (value) {
-                      setState(() {
-                        classData.subject = value;
-                      });
+                      classData.subject = value;
                     },
-                    controller: TextEditingController(text: classData.subject),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
+                    initialValue: classData.teacher,
                     decoration: const InputDecoration(
                       labelText: 'Teacher',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.person),
                     ),
                     onChanged: (value) {
-                      setState(() {
-                        classData.teacher = value;
-                      });
+                      classData.teacher = value;
                     },
-                    controller: TextEditingController(text: classData.teacher),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
+                    initialValue: classData.room,
                     decoration: const InputDecoration(
                       labelText: 'Room/Location',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.room),
                     ),
                     onChanged: (value) {
-                      setState(() {
-                        classData.room = value;
-                      });
+                      classData.room = value;
                     },
-                    controller: TextEditingController(text: classData.room),
                   ),
                 ],
               ),

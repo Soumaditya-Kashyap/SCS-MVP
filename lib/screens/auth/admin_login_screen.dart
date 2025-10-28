@@ -192,12 +192,36 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          _buildCredentialRow('CSE', 'cseadtu@admin.in', 'cse1234'),
-                          _buildCredentialRow('ECE', 'eceadtu@admin.in', 'ece1234'),
-                          _buildCredentialRow('ME', 'meadtu@admin.in', 'me1234'),
-                          _buildCredentialRow('CE', 'ceadtu@admin.in', 'ce1234'),
-                          _buildCredentialRow('EE', 'eeadtu@admin.in', 'ee1234'),
-                          _buildCredentialRow('IT', 'itadtu@admin.in', 'it1234'),
+                          _buildCredentialRow(
+                            'CSE',
+                            'admin.cse@scs.edu',
+                            'CSE1234',
+                          ),
+                          _buildCredentialRow(
+                            'ECE',
+                            'admin.ece@scs.edu',
+                            'ECE1234',
+                          ),
+                          _buildCredentialRow(
+                            'ME',
+                            'admin.me@scs.edu',
+                            'ME1234',
+                          ),
+                          _buildCredentialRow(
+                            'CE',
+                            'admin.ce@scs.edu',
+                            'CE1234',
+                          ),
+                          _buildCredentialRow(
+                            'EE',
+                            'admin.ee@scs.edu',
+                            'EE1234',
+                          ),
+                          _buildCredentialRow(
+                            'IT',
+                            'admin.it@scs.edu',
+                            'IT1234',
+                          ),
                         ],
                       ),
                     ),
@@ -212,7 +236,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       labelText: 'Admin Email',
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(),
-                      hintText: 'cseadtu@admin.in',
+                      hintText: 'admin.cse@scs.edu',
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

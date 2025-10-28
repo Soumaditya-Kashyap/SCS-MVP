@@ -26,11 +26,12 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
 
     try {
       final results = await AdminAccountSetup.setupPresetAdminAccounts();
-      
+
       setState(() {
         _results = results;
         final summary = results['summary'] as Map<String, dynamic>;
-        _statusMessage = 'Setup complete! ${summary['success']} accounts created successfully.';
+        _statusMessage =
+            'Setup complete! ${summary['success']} accounts created successfully.';
       });
     } catch (e) {
       setState(() {
@@ -93,9 +94,8 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
                     children: [
                       Text(
                         'Admin Accounts to be Created:',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
                       _buildCredRow('CSE', 'cseadtu@admin.in', 'cse1234'),
@@ -142,7 +142,9 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
                     child: Text(
                       _statusMessage,
                       style: TextStyle(
-                        color: _results != null ? Colors.green[900] : Colors.grey[900],
+                        color: _results != null
+                            ? Colors.green[900]
+                            : Colors.grey[900],
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -161,36 +163,45 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
                       children: [
                         Text(
                           'Results:',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        ..._results!.entries.where((e) => e.key != 'summary').map((entry) {
-                          final isSuccess = entry.value.toString().contains('successfully');
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 6.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isSuccess ? Icons.check_circle : Icons.error,
-                                  color: isSuccess ? Colors.green : Colors.orange,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '${entry.key}: ${entry.value}',
-                                    style: TextStyle(
-                                      color: isSuccess ? Colors.green[900] : Colors.orange[900],
-                                      fontSize: 13,
+                        ..._results!.entries
+                            .where((e) => e.key != 'summary')
+                            .map((entry) {
+                              final isSuccess = entry.value.toString().contains(
+                                'successfully',
+                              );
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 6.0),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      isSuccess
+                                          ? Icons.check_circle
+                                          : Icons.error,
+                                      color: isSuccess
+                                          ? Colors.green
+                                          : Colors.orange,
+                                      size: 18,
                                     ),
-                                  ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '${entry.key}: ${entry.value}',
+                                        style: TextStyle(
+                                          color: isSuccess
+                                              ? Colors.green[900]
+                                              : Colors.orange[900],
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        }),
+                              );
+                            }),
                       ],
                     ),
                   ),

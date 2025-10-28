@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Run this script ONCE to create the 6 preset admin accounts
 /// This should be run by a system administrator
-/// 
+///
 /// HOW TO RUN:
 /// 1. Create a temporary button in your app
 /// 2. Call setupPresetAdminAccounts() when clicked

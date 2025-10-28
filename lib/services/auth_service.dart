@@ -100,7 +100,7 @@ class AuthService {
   }
 
   // Admin Login with preset department emails
-  // Expected format: cseadtu@admin.in, eceadtu@admin.in, etc.
+  // Expected format: admin.cse@scs.edu, admin.ece@scs.edu, etc.
   Future<AppUser?> signInAdmin({
     required String email,
     required String password,
@@ -108,10 +108,10 @@ class AuthService {
     try {
       // Validate admin email format
       final emailLower = email.trim().toLowerCase();
-      if (!emailLower.endsWith('@admin.in')) {
+      if (!emailLower.endsWith('@scs.edu')) {
         throw FirebaseAuthException(
           code: 'invalid-admin-email',
-          message: 'Admin email must end with @admin.in',
+          message: 'Admin email must end with @scs.edu',
         );
       }
 
@@ -131,24 +131,27 @@ class AuthService {
 
       // Get admin user data from Firestore
       final doc = await _firestore.collection('users').doc(user.uid).get();
-      
+
       AppUser appUser;
       if (!doc.exists) {
         // Auto-create admin profile if doesn't exist (for preset accounts)
-        // Extract department from email (e.g., cseadtu@admin.in -> CSE)
-        final deptCode = emailLower.replaceAll('adtu@admin.in', '').toUpperCase();
-        
+        // Extract department from email (e.g., admin.cse@scs.edu -> CSE)
+        final deptCode = emailLower
+            .replaceAll('admin.', '')
+            .replaceAll('@scs.edu', '')
+            .toUpperCase();
+
         appUser = AppUser(
           uid: user.uid,
           email: emailLower,
           role: 'admin',
           department: deptCode,
         );
-        
+
         await _firestore.collection('users').doc(user.uid).set(appUser.toMap());
       } else {
         appUser = AppUser.fromMap(doc.data()!, user.uid);
-        
+
         // Verify this is an admin account
         if (!appUser.isAdmin) {
           await _auth.signOut(); // Sign out non-admin user
@@ -168,7 +171,8 @@ class AuthService {
         message: e.toString(),
       );
     }
-  }  // Sign Out
+  } // Sign Out
+
   Future<void> signOut() async {
     await _auth.signOut();
   }

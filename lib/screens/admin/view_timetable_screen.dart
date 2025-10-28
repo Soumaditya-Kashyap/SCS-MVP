@@ -356,7 +356,9 @@ class _ViewTimetableScreenState extends State<ViewTimetableScreen> {
 
     // Find class for this time slot
     final classData = dayClasses.firstWhere(
-      (c) => c['time'] == slot,
+      (c) =>
+          (c['timeSlot'] ?? c['time']) ==
+          slot, // Support both old and new format
       orElse: () => null,
     );
 

@@ -62,6 +62,83 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
     }
   }
 
+  Future<void> _loadExistingTimetable() async {
+    if (_selectedDepartment == null ||
+        _selectedSemester == null ||
+        _selectedSection == null) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final existingData = await _firestoreService.getTimetable(
+        department: _selectedDepartment!,
+        semester: _selectedSemester!,
+        section: _selectedSection!,
+      );
+
+      if (existingData != null && existingData['routine'] != null) {
+        // Clear existing data first
+        _initializeTimetableData();
+
+        // Load existing data
+        final routine = existingData['routine'] as Map<String, dynamic>;
+        routine.forEach((day, classes) {
+          if (classes is List) {
+            for (var classData in classes) {
+              final timeSlot = classData['timeSlot'] ?? classData['time'] ?? '';
+              if (timeSlot.isNotEmpty &&
+                  _timetableData[day]?[timeSlot] != null) {
+                _timetableData[day]![timeSlot] = ClassPeriod(
+                  subject: classData['subject'] ?? '',
+                  teacher: classData['teacher'] ?? '',
+                  room: classData['room'] ?? '',
+                );
+              }
+            }
+          }
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Loaded existing timetable for editing'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // No existing timetable
+        _initializeTimetableData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No existing timetable. Creating new one.'),
+              backgroundColor: Colors.blue,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading timetable: $e'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      _initializeTimetableData();
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Future<void> _saveTimetable() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -87,10 +164,11 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
         slots.forEach((time, classData) {
           if (classData.subject.isNotEmpty) {
             dayClasses.add({
-              'time': time,
+              'timeSlot': time,
               'subject': classData.subject,
               'teacher': classData.teacher,
               'room': classData.room,
+              'courseCode': '', // Optional field
             });
           }
         });
@@ -176,6 +254,12 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
                             setState(() {
                               _selectedDepartment = value;
                             });
+                            // Load existing timetable if all selections are made
+                            if (value != null &&
+                                _selectedSemester != null &&
+                                _selectedSection != null) {
+                              _loadExistingTimetable();
+                            }
                           },
                         ),
                       ),
@@ -199,6 +283,12 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
                             setState(() {
                               _selectedSemester = value;
                             });
+                            // Load existing timetable if all selections are made
+                            if (_selectedDepartment != null &&
+                                value != null &&
+                                _selectedSection != null) {
+                              _loadExistingTimetable();
+                            }
                           },
                         ),
                       ),
@@ -222,6 +312,12 @@ class _CreateTimetableScreenState extends State<CreateTimetableScreen> {
                             setState(() {
                               _selectedSection = value;
                             });
+                            // Load existing timetable if all selections are made
+                            if (_selectedDepartment != null &&
+                                _selectedSemester != null &&
+                                value != null) {
+                              _loadExistingTimetable();
+                            }
                           },
                         ),
                       ),

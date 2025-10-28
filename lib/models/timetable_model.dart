@@ -20,7 +20,10 @@ class ClassPeriod {
       teacher: map['teacher'] ?? '',
       courseCode: map['courseCode'] ?? '',
       room: map['room'] ?? '',
-      timeSlot: map['timeSlot'] ?? '',
+      timeSlot:
+          map['timeSlot'] ??
+          map['time'] ??
+          '', // Support both old and new format
     );
   }
 

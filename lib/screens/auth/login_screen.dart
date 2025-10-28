@@ -84,7 +84,11 @@ class _LoginScreenState extends State<LoginScreen> {
           errorMessage = 'Too many failed attempts. Please try again later.';
           break;
         case 'invalid-credential':
-          errorMessage = 'Invalid email or password.';
+          errorMessage =
+              '❌ Invalid email or password.\n\n'
+              '• Check if email is correct\n'
+              '• Check if password is correct\n'
+              '• If you haven\'t registered, click "Register" below';
           break;
         default:
           errorMessage = 'Login failed: ${e.message ?? e.code}';
@@ -149,6 +153,34 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
+
+                  // Info Card for first-time users
+                  Card(
+                    color: Colors.blue[50],
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue[700],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'First time? Click "Register" below to create an account',
+                              style: TextStyle(
+                                color: Colors.blue[900],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   // Email Field
                   TextFormField(

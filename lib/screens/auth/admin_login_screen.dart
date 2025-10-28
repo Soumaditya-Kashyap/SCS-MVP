@@ -101,6 +101,37 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     }
   }
 
+  Widget _buildCredentialRow(String dept, String email, String password) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: Text(
+              dept,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[900],
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              '$email / $password',
+              style: TextStyle(
+                color: Colors.blue[800],
+                fontSize: 11,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,6 +169,41 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   ),
                   const SizedBox(height: 48),
 
+                  // Info Card with Preset Credentials
+                  Card(
+                    color: Colors.blue[50],
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info, color: Colors.blue[700]),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Department Admin Credentials',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildCredentialRow('CSE', 'cseadtu@admin.in', 'cse1234'),
+                          _buildCredentialRow('ECE', 'eceadtu@admin.in', 'ece1234'),
+                          _buildCredentialRow('ME', 'meadtu@admin.in', 'me1234'),
+                          _buildCredentialRow('CE', 'ceadtu@admin.in', 'ce1234'),
+                          _buildCredentialRow('EE', 'eeadtu@admin.in', 'ee1234'),
+                          _buildCredentialRow('IT', 'itadtu@admin.in', 'it1234'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
                   // Email Field
                   TextFormField(
                     controller: _emailController,
@@ -146,7 +212,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       labelText: 'Admin Email',
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(),
-                      hintText: 'admin@department.edu',
+                      hintText: 'cseadtu@admin.in',
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

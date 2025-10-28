@@ -99,15 +99,25 @@ class AuthService {
     }
   }
 
-  // Admin Login with email and password (direct login)
+  // Admin Login with preset department emails
+  // Expected format: cseadtu@admin.in, eceadtu@admin.in, etc.
   Future<AppUser?> signInAdmin({
     required String email,
     required String password,
   }) async {
     try {
+      // Validate admin email format
+      final emailLower = email.trim().toLowerCase();
+      if (!emailLower.endsWith('@admin.in')) {
+        throw FirebaseAuthException(
+          code: 'invalid-admin-email',
+          message: 'Admin email must end with @admin.in',
+        );
+      }
+
       // Try to sign in with email and password
       UserCredential result = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
+        email: emailLower,
         password: password,
       );
 
@@ -121,23 +131,32 @@ class AuthService {
 
       // Get admin user data from Firestore
       final doc = await _firestore.collection('users').doc(user.uid).get();
-
+      
+      AppUser appUser;
       if (!doc.exists) {
-        throw FirebaseAuthException(
-          code: 'user-data-not-found',
-          message: 'Admin profile not found. Please contact administrator.',
+        // Auto-create admin profile if doesn't exist (for preset accounts)
+        // Extract department from email (e.g., cseadtu@admin.in -> CSE)
+        final deptCode = emailLower.replaceAll('adtu@admin.in', '').toUpperCase();
+        
+        appUser = AppUser(
+          uid: user.uid,
+          email: emailLower,
+          role: 'admin',
+          department: deptCode,
         );
-      }
-
-      final appUser = AppUser.fromMap(doc.data()!, user.uid);
-
-      // Verify this is an admin account
-      if (!appUser.isAdmin) {
-        await _auth.signOut(); // Sign out non-admin user
-        throw FirebaseAuthException(
-          code: 'not-admin',
-          message: 'This account is not authorized as admin/teacher.',
-        );
+        
+        await _firestore.collection('users').doc(user.uid).set(appUser.toMap());
+      } else {
+        appUser = AppUser.fromMap(doc.data()!, user.uid);
+        
+        // Verify this is an admin account
+        if (!appUser.isAdmin) {
+          await _auth.signOut(); // Sign out non-admin user
+          throw FirebaseAuthException(
+            code: 'not-admin',
+            message: 'This account is not authorized as admin/teacher.',
+          );
+        }
       }
 
       return appUser;
@@ -149,51 +168,7 @@ class AuthService {
         message: e.toString(),
       );
     }
-  }
-
-  // Create Admin/Teacher Account
-  Future<void> createAdminAccount({
-    required String email,
-    required String password,
-    required String department,
-    String? name,
-  }) async {
-    try {
-      // Create user in Firebase Auth
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
-
-      User? user = result.user;
-      if (user == null) {
-        throw FirebaseAuthException(
-          code: 'user-creation-failed',
-          message: 'Failed to create admin account',
-        );
-      }
-
-      // Create admin profile in Firestore
-      final appUser = AppUser(
-        uid: user.uid,
-        email: email.trim(),
-        role: 'admin',
-        department: department.toUpperCase(),
-        enrollmentId: name, // Use enrollmentId field to store teacher name
-      );
-
-      await _firestore.collection('users').doc(user.uid).set(appUser.toMap());
-    } on FirebaseAuthException {
-      rethrow;
-    } catch (e) {
-      throw FirebaseAuthException(
-        code: 'admin-creation-error',
-        message: e.toString(),
-      );
-    }
-  }
-
-  // Sign Out
+  }  // Sign Out
   Future<void> signOut() async {
     await _auth.signOut();
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import '../../utils/admin_account_setup.dart';
 
-/// Utility screen to create admin accounts for different departments
-/// This should only be used for initial setup
+/// ONE-TIME ADMIN SETUP SCREEN
+/// Use this screen ONCE to create the 6 preset admin accounts
+/// This is now automated - just click the button!
+
 class AdminSetupScreen extends StatefulWidget {
   const AdminSetupScreen({super.key});
 
@@ -11,67 +13,33 @@ class AdminSetupScreen extends StatefulWidget {
 }
 
 class _AdminSetupScreenState extends State<AdminSetupScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _authService = AuthService();
   bool _isLoading = false;
-  String? _selectedDepartment;
+  String _statusMessage = '';
+  Map<String, dynamic>? _results;
 
-  final List<String> _departments = ['CSE', 'ECE', 'ME', 'CE', 'EE', 'IT'];
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _createAdminAccount() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
+  Future<void> _runSetup() async {
+    setState(() {
+      _isLoading = true;
+      _statusMessage = 'Creating 6 preset admin accounts...';
+      _results = null;
+    });
 
     try {
-      await _authService.createAdminAccount(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        department: _selectedDepartment!.toUpperCase(),
-        name: _nameController.text.trim().isEmpty
-            ? null
-            : _nameController.text.trim(),
-      );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Admin account created: ${_emailController.text}'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-
-      // Clear form
-      _emailController.clear();
-      _passwordController.clear();
-      _nameController.clear();
-      setState(() => _selectedDepartment = null);
+      final results = await AdminAccountSetup.setupPresetAdminAccounts();
+      
+      setState(() {
+        _results = results;
+        final summary = results['summary'] as Map<String, dynamic>;
+        _statusMessage = 'Setup complete! ${summary['success']} accounts created successfully.';
+      });
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      setState(() {
+        _statusMessage = 'Setup failed: $e';
+      });
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -79,220 +47,224 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Admin Accounts'),
+        title: const Text('Preset Admin Setup'),
         backgroundColor: Colors.orange,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                color: Colors.orange[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange[700], size: 40),
+                      const SizedBox(height: 8),
+                      Text(
+                        'ONE-TIME SETUP',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange[900],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Click the button below to automatically create 6 preset admin accounts.',
+                        style: TextStyle(color: Colors.orange[900]),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Preset Credentials List
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Admin Accounts to be Created:',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildCredRow('CSE', 'cseadtu@admin.in', 'cse1234'),
+                      _buildCredRow('ECE', 'eceadtu@admin.in', 'ece1234'),
+                      _buildCredRow('ME', 'meadtu@admin.in', 'me1234'),
+                      _buildCredRow('CE', 'ceadtu@admin.in', 'ce1234'),
+                      _buildCredRow('EE', 'eeadtu@admin.in', 'ee1234'),
+                      _buildCredRow('IT', 'itadtu@admin.in', 'it1234'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Setup Button
+              ElevatedButton(
+                onPressed: _isLoading ? null : _runSetup,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.orange,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Create All Admin Accounts',
+                        style: TextStyle(fontSize: 16),
+                      ),
+              ),
+              const SizedBox(height: 24),
+
+              // Status Message
+              if (_statusMessage.isNotEmpty)
                 Card(
-                  color: Colors.orange[50],
+                  color: _results != null ? Colors.green[50] : Colors.grey[100],
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.warning,
-                          color: Colors.orange[700],
-                          size: 40,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Admin Setup Utility',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange[900],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Use this screen only for initial setup. Create admin accounts for each department.',
-                          style: TextStyle(color: Colors.orange[900]),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                    padding: const EdgeInsets.all(12.0),
+                    child: Text(
+                      _statusMessage,
+                      style: TextStyle(
+                        color: _results != null ? Colors.green[900] : Colors.grey[900],
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
 
-                // Admin Email Field
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Admin Email *',
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(),
-                    hintText: 'teacher@department.edu',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter admin email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                ),
+              // Results Details
+              if (_results != null) ...[
                 const SizedBox(height: 16),
-
-                // Teacher Name (Optional)
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Teacher Name (Optional)',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
-                    hintText: 'Dr. John Doe',
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Department Dropdown
-                DropdownButtonFormField<String>(
-                  value: _selectedDepartment,
-                  decoration: const InputDecoration(
-                    labelText: 'Department *',
-                    prefixIcon: Icon(Icons.business),
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _departments.map((dept) {
-                    return DropdownMenuItem(value: dept, child: Text(dept));
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedDepartment = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select a department';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Password Field
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Admin Password *',
-                    prefixIcon: Icon(Icons.lock),
-                    border: OutlineInputBorder(),
-                    helperText: 'Minimum 6 characters',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Create Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _createAdminAccount,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.orange,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Create Admin Account',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                ),
-                const SizedBox(height: 24),
-
-                // Info Card
                 Card(
-                  color: Colors.blue[50],
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info, color: Colors.blue[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Important Information',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
                         Text(
-                          '• Multiple teachers can be added per department',
-                          style: TextStyle(color: Colors.blue[900]),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '• Each teacher needs a unique email address',
-                          style: TextStyle(color: Colors.blue[900]),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '• Teachers login with their email and password',
-                          style: TextStyle(color: Colors.blue[900]),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Example:',
-                          style: TextStyle(
-                            color: Colors.blue[700],
+                          'Results:',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Email: john.doe@cse.edu',
-                          style: TextStyle(
-                            color: Colors.blue[700],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        Text(
-                          'Department: CSE',
-                          style: TextStyle(
-                            color: Colors.blue[700],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
+                        const SizedBox(height: 8),
+                        ..._results!.entries.where((e) => e.key != 'summary').map((entry) {
+                          final isSuccess = entry.value.toString().contains('successfully');
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 6.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isSuccess ? Icons.check_circle : Icons.error,
+                                  color: isSuccess ? Colors.green : Colors.orange,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '${entry.key}: ${entry.value}',
+                                    style: TextStyle(
+                                      color: isSuccess ? Colors.green[900] : Colors.orange[900],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),
                 ),
               ],
-            ),
+
+              const SizedBox(height: 24),
+
+              // Info Card
+              Card(
+                color: Colors.blue[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info, color: Colors.blue[700]),
+                          const SizedBox(width: 8),
+                          Text(
+                            'After Setup',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        '• Each department gets one admin account',
+                        style: TextStyle(color: Colors.blue[900]),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '• Teachers login using department credentials',
+                        style: TextStyle(color: Colors.blue[900]),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '• This setup needs to be run only ONCE',
+                        style: TextStyle(color: Colors.blue[900]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCredRow(String dept, String email, String password) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: Text(
+              dept,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              '$email / $password',
+              style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+            ),
+          ),
+        ],
       ),
     );
   }

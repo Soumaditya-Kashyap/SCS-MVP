@@ -5,7 +5,6 @@ import 'student_register_screen.dart';
 import 'admin_login_screen.dart';
 import '../student/student_home_screen.dart';
 import '../admin/admin_home_screen.dart';
-import '../admin/admin_setup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -291,23 +290,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     icon: const Icon(Icons.admin_panel_settings),
                     label: const Text('Admin/Teacher Login'),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Admin Setup Link (for initial setup)
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdminSetupScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Create Admin Account (Setup)',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
                   ),
                 ],
               ),

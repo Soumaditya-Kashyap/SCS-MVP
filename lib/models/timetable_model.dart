@@ -203,11 +203,49 @@ class UnscheduledClass {
         classDate.day == today.day;
   }
 
-  // Check if this class is upcoming (future date)
+  // Check if this class is upcoming (future date/time)
   bool get isUpcoming {
     final classDate = DateTime.tryParse(date);
     if (classDate == null) return false;
-    return classDate.isAfter(DateTime.now());
+    
+    final now = DateTime.now();
+    
+    // If class date is in the future, it's upcoming
+    if (classDate.year > now.year ||
+        (classDate.year == now.year && classDate.month > now.month) ||
+        (classDate.year == now.year && classDate.month == now.month && classDate.day > now.day)) {
+      return true;
+    }
+    
+    // If class date is today, check the time
+    if (classDate.year == now.year && 
+        classDate.month == now.month && 
+        classDate.day == now.day) {
+      try {
+        // Parse time (format: "HH:MM" or "HH:MM AM/PM")
+        final timeParts = time.split(':');
+        if (timeParts.length >= 2) {
+          int hour = int.parse(timeParts[0].trim());
+          final minutePart = timeParts[1].trim().toUpperCase();
+          int minute = int.parse(minutePart.replaceAll(RegExp(r'[^0-9]'), ''));
+          
+          // Handle AM/PM format
+          if (minutePart.contains('PM') && hour != 12) {
+            hour += 12;
+          } else if (minutePart.contains('AM') && hour == 12) {
+            hour = 0;
+          }
+          
+          final classTime = DateTime(now.year, now.month, now.day, hour, minute);
+          return classTime.isAfter(now);
+        }
+      } catch (e) {
+        // If time parsing fails, show it if it's today
+        return true;
+      }
+    }
+    
+    return false;
   }
 }
 

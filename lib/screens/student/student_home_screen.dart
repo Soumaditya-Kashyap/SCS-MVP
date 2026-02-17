@@ -98,14 +98,21 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 }
 
 // Home Page Content
-class StudentHomePage extends StatelessWidget {
+class StudentHomePage extends StatefulWidget {
   final AppUser? user;
 
   const StudentHomePage({super.key, this.user});
 
   @override
+  State<StudentHomePage> createState() => _StudentHomePageState();
+}
+
+class _StudentHomePageState extends State<StudentHomePage> {
+  int _refreshKey = 0;
+
+  @override
   Widget build(BuildContext context) {
-    if (user == null) {
+    if (widget.user == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -123,8 +130,11 @@ class StudentHomePage extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: () async {
-        // Trigger rebuild
-        (context as Element).markNeedsBuild();
+        // Trigger rebuild by changing the key
+        setState(() {
+          _refreshKey++;
+        });
+        await Future.delayed(const Duration(milliseconds: 500));
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -196,12 +206,12 @@ class StudentHomePage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              user!.enrollmentId ?? 'Student',
+              widget.user!.enrollmentId ?? 'Student',
               style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 4),
             Text(
-              '${user!.department} • Sem ${user!.semester} • Sec ${user!.section}',
+              '${widget.user!.department} • Sem ${widget.user!.semester} • Sec ${widget.user!.section}',
               style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
           ],
@@ -244,9 +254,9 @@ class StudentHomePage extends StatelessWidget {
   Widget _buildTodaysClasses(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>?>(
       future: FirestoreService().getTimetable(
-        department: user!.department,
-        semester: user!.semester!,
-        section: user!.section!,
+        department: widget.user!.department,
+        semester: widget.user!.semester!,
+        section: widget.user!.section!,
       ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -334,7 +344,8 @@ class StudentHomePage extends StatelessWidget {
 
   Widget _buildUnscheduledClasses(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirestoreService().getUnscheduledClasses(user!.department),
+      key: ValueKey('unscheduled_$_refreshKey'),
+      stream: FirestoreService().getUnscheduledClasses(widget.user!.department),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -355,7 +366,22 @@ class StudentHomePage extends StatelessWidget {
                 doc.id,
               ),
             )
-            .where((c) => c.isUpcoming)
+            .where((c) {
+              // Filter by upcoming date
+              if (!c.isUpcoming) return false;
+              
+              // Filter by semester: show if null (for all) or matches student's semester
+              if (c.semester != null && c.semester != widget.user!.semester) {
+                return false;
+              }
+              
+              // Filter by section: show if null (for all) or matches student's section
+              if (c.section != null && c.section != widget.user!.section) {
+                return false;
+              }
+              
+              return true;
+            })
             .toList();
 
         if (classes.isEmpty) {
@@ -412,9 +438,10 @@ class StudentHomePage extends StatelessWidget {
 
   Widget _buildUpcomingExams(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
+      key: ValueKey('exams_$_refreshKey'),
       stream: FirestoreService().getExams(
-        user!.department,
-        semester: user!.semester,
+        widget.user!.department,
+        semester: widget.user!.semester,
       ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

@@ -57,15 +57,23 @@ class _StudentExamsScreenState extends State<StudentExamsScreen> {
             )
             .toList();
 
-        // Sort by date
-        exams.sort((a, b) {
+        // Separate upcoming and past exams
+        final upcomingExams = exams.where((e) => e.isUpcoming).toList();
+        final pastExams = exams.where((e) => e.isPast).toList();
+
+        // Sort upcoming exams by date (nearest first - ascending)
+        upcomingExams.sort((a, b) {
+          final dateA = DateTime.tryParse(a.date) ?? DateTime.now();
+          final dateB = DateTime.tryParse(b.date) ?? DateTime.now();
+          return dateA.compareTo(dateB);
+        });
+
+        // Sort past exams by date (most recent first - descending)
+        pastExams.sort((a, b) {
           final dateA = DateTime.tryParse(a.date) ?? DateTime.now();
           final dateB = DateTime.tryParse(b.date) ?? DateTime.now();
           return dateB.compareTo(dateA);
         });
-
-        final upcomingExams = exams.where((e) => e.isUpcoming).toList();
-        final pastExams = exams.where((e) => e.isPast).toList();
 
         return RefreshIndicator(
           onRefresh: () async {
